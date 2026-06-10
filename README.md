@@ -12,6 +12,13 @@ and unrelated. The first modeling decision is therefore to declare which
 class names are considered "irrigation". That declaration lives in
 [`configs/irrigation_classes.yaml`](configs/irrigation_classes.yaml).
 
+> **Workflow note.** Development happens on a local MacBook; training
+> runs on a Linux server with two RTX 6000 Ada GPUs (`ssh
+> bobyard-server-6000`). **All edits / commits / pushes happen on the
+> Mac. The server only does `git pull` + `setup_server.sh`** (it shares
+> one Linux account, so we don't put our GitHub credentials there).
+> See [`DEVELOPMENT.md`](DEVELOPMENT.md) for the full set of rules.
+
 ---
 
 ## Repository layout
@@ -28,9 +35,10 @@ irrigation_symbol_recognition/
 │   └── call_symbol_localizer.py
 ├── scripts/
 │   ├── inspect_dataset.py            # CLI: prints dataset stats / filter report
-│   ├── prepare_detection_dataset.py  # COCO -> YOLO + tile slicing
+│   ├── prepare_detection_dataset.py  # YOLO filter + tile slicing
 │   ├── train_detection.py            # Ultralytics YOLO training
-│   └── inference_detection.py        # sliding-window inference + NMS
+│   ├── inference_detection.py        # sliding-window inference + NMS
+│   └── setup_server.sh               # one-shot venv bootstrap on the Linux server
 ├── src/irrigation_symbol_recognition/
 │   ├── data/                     # YOLO dataset loading (data.yaml + per-image .txt)
 │   ├── detection/                # tiled-YOLO pipeline (filter, slicing, train, inference, NMS)

@@ -17,7 +17,6 @@ this module is comparable to those trained by the reference pipeline:
 from __future__ import annotations
 
 import logging
-import shutil
 from pathlib import Path
 from typing import List, Tuple
 
@@ -372,9 +371,17 @@ def slice_data(detection_data_config: dict) -> None:
     input_yaml = dataset_dir / "data.yaml"
     output_yaml = output_dir / "data.yaml"
     if input_yaml.exists():
+        import yaml
+
         output_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(str(input_yaml), str(output_yaml))
-        logger.info("Copied data.yaml from %s to %s", input_yaml, output_yaml)
+        with open(input_yaml, "r") as fh:
+            data_cfg = yaml.safe_load(fh) or {}
+        # The source data.yaml's `path` points at the unsliced dataset; it
+        # must be rewritten or Ultralytics would train on the unsliced images.
+        data_cfg["path"] = str(output_dir.absolute())
+        with open(output_yaml, "w") as fh:
+            yaml.safe_dump(data_cfg, fh, sort_keys=False)
+        logger.info("Copied data.yaml from %s to %s (path -> %s)", input_yaml, output_yaml, output_dir)
 
     logger.info("=" * 60)
     logger.info("Dataset slicing complete! Output: %s", output_dir)

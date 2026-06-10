@@ -68,6 +68,7 @@ def main() -> int:
         batch_size=batch_size,
         device=device,
         model_size=str(training_cfg.get("model_size", "m")),
+        model_name=str(training_cfg.get("model_name", "") or ""),
         pretrained_path=training_cfg.get("pretrained_path") or None,
         pretrained_model_name=training_cfg.get("model_yaml") or None,
         model_path=training_cfg.get("model_path", "") or "",

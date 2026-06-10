@@ -82,6 +82,12 @@ def main() -> int:
             batch_size=int(inf_cfg["batch_size"]),
             nms_iou_threshold=float(inf_cfg["nms_iou_threshold"]),
         )
+        # `__background__` is a training-time sink for non-irrigation symbols;
+        # it is not a real output class.
+        n_bg = sum(1 for d in dets if d.get("class_name") == "__background__")
+        if n_bg:
+            dets = [d for d in dets if d.get("class_name") != "__background__"]
+            logger.info("  dropped %d __background__ detections", n_bg)
         out_path = out_dir / (img_path.stem + ".detections.json")
         out_path.write_text(json.dumps({
             "image": str(img_path),

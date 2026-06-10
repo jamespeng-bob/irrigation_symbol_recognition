@@ -15,7 +15,7 @@ torch>=2.2
 torchvision>=0.17
 
 # Object detection / experiment tracking (optional but commonly used)
-ultralytics>=8.4          # YOLOv8/YOLOv11 for detection baselines
+ultralytics>=8.4          # ships YOLO26 (default) + YOLOv8/v9/v10/v11/v12 architectures
 albumentations>=1.4       # augmentations
 scikit-learn>=1.4
 tensorboard>=2.16

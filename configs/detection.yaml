@@ -12,7 +12,7 @@
 
 # --- Where the prepared YOLO datasets are written on disk -------------------
 paths:
-  # YOLO format conversion (COCO -> YOLO), before slicing.
+  # Filtered YOLO dataset (irrigation classes only), before tile slicing.
   yolo_dataset_dir: "data/detection/irrigation_yolo"
   # Output of the slicing step (this is what YOLO actually trains on).
   sliced_dataset_dir: "data/detection/irrigation_yolo_sliced"
@@ -20,8 +20,8 @@ paths:
   runs_project: "runs"
   runs_name: "irrigation_yolo_v1"
 
-# --- Train/valid split (carved out of the COCO train split) -----------------
-# Test comes from the COCO `test` split as-is.
+# --- Train/valid split (carved out of the Roboflow `train` split) -----------
+# `test` comes from the Roboflow `test` split unchanged.
 split:
   valid_fraction: 0.10
   seed: 42
@@ -46,8 +46,10 @@ slicing:
 training:
   # YOLO model to start from. Set `pretrained_path` to fine-tune from a
   # checkpoint provided by colleagues; leave empty to use the public weights.
-  model_size: "m"           # one of: n, s, m, l, x
-  model_yaml: "yolo11x.yaml" # used only if `pretrained_path` is set
+  model_name: "yolo26m.pt"  # public Ultralytics weights used when neither
+                            # `model_path` nor `pretrained_path` is set
+  model_size: "m"           # fallback when `model_name` is empty: yolov{size}.pt
+  model_yaml: "yolo26.yaml" # used only if `pretrained_path` is set
   pretrained_path: ""        # e.g. "external_api/localization.pt"
   model_path: ""             # set to a `best.pt` to resume / fine-tune
 

@@ -48,6 +48,7 @@ def train_with_ultralytics(
     batch_size: int,
     device: str,
     model_size: str = "n",
+    model_name: str = "",
     model_path: str = "",
     pretrained_path: str | None = None,
     pretrained_model_name: str | None = None,
@@ -61,7 +62,8 @@ def train_with_ultralytics(
     ``pretrained_path`` : if set, load weights into a fresh ``YOLO(model_yaml)``
                           architecture (used when colleagues ship a ``.pt``
                           that doesn't carry its own config).
-    Otherwise the public ``yolov<model_size>.pt`` weights are used.
+    Otherwise the public ``model_name`` weights are used (e.g. ``yolo26m.pt``),
+    falling back to ``yolov<model_size>.pt`` if ``model_name`` is empty.
     """
     # Imported lazily so the rest of the package works without ultralytics.
     from ultralytics import YOLO  # type: ignore
@@ -84,7 +86,7 @@ def train_with_ultralytics(
         model = YOLO(pretrained_model_name)
         model.load(pretrained_path)
     else:
-        default_weights = f"yolov{model_size}.pt"
+        default_weights = model_name or f"yolov{model_size}.pt"
         logger.info("Loading default model: %s", default_weights)
         model = YOLO(default_weights)
 

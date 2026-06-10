@@ -33,11 +33,25 @@
 # ---- Required: list the irrigation-related class names here ----
 # Each entry must match exactly a `name` value in `all_class_names.csv`.
 # Example placeholders (replace with the real ones):
-irrigation_classes: []
+irrigation_classes:
   # - "0072"
   # - "0524"
   # - "1642"
   # - ...
+  - "0038"
+  - "0039"
+  - "0040"
+  - "0117"
+  - "0118"
+  - "0192"
+  - "0406"
+  - "0410"
+  - "0817"
+  - "0842"
+  - "1112"
+  - "1113"
+  - "1504"
+  - "P"
 
 # ---- Optional: collapse multiple raw class names into a single label ----
 # Keys become the final training labels. Values are lists of raw class names
