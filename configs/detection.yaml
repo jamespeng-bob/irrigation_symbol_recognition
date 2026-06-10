@@ -55,7 +55,7 @@ training:
 
   image_size: 640            # network input (slices will be resized to this)
   epochs: 50
-  batch_size: 16
+  batch_size: 48             # 3x default; peak VRAM ~42 GB on RTX 6000 Ada (48 GB)
   device: "auto"             # "auto" picks cuda > mps > cpu
   num_workers: 4
 
