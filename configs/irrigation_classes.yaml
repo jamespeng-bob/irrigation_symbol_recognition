@@ -1,0 +1,70 @@
+# =============================================================================
+# Irrigation-related class names
+# =============================================================================
+#
+# The COCO dataset under
+#   datasets/landscaping-detection.v61-complete_annotations.coco/
+# contains 4,541 leaf classes (plus 1 supercategory `Symbols-mQMX`).
+#
+# Confirmed observation:
+#   - 4,436 / 4,541 (~97.7%) of class names ARE 4-digit number strings
+#     (e.g. "0072", "0524", "1642").
+#   - The remaining 106 are short letter codes (e.g. "A", "AB", "CYP"),
+#     a couple of 5-digit numbers ("20073", "45666"), and a few plant names
+#     (e.g. "Furcraea"). These are listed under `non_numeric_names` in
+#     `configs/all_class_names.csv` for reference.
+#
+# HOW TO USE THIS FILE
+#   1. Open `configs/all_class_names.csv` (sorted by total annotation count).
+#   2. Add the class `name` (string, NOT the integer category_id) of every
+#      symbol you consider irrigation-related to `irrigation_classes` below.
+#      Keep the names as strings — the leading zeros matter (e.g. "0072",
+#      not 72).
+#   3. Optionally group them under `class_groups` if several class names
+#      should be merged into a single training label (e.g. multiple
+#      drawing variants of the same physical valve).
+#
+# This file is the single source of truth used by:
+#   - dataset filtering / class-remapping
+#   - training (number of model classes = len(irrigation_classes) after
+#     applying class_groups)
+#   - evaluation (we only score these classes)
+
+# ---- Required: list the irrigation-related class names here ----
+# Each entry must match exactly a `name` value in `all_class_names.csv`.
+# Example placeholders (replace with the real ones):
+irrigation_classes: []
+  # - "0072"
+  # - "0524"
+  # - "1642"
+  # - ...
+
+# ---- Optional: collapse multiple raw class names into a single label ----
+# Keys become the final training labels. Values are lists of raw class names
+# that should be mapped to that label. Any class listed in
+# `irrigation_classes` but NOT appearing in `class_groups` will remain a
+# label of its own.
+class_groups: {}
+  # rotor_head:
+  #   - "0072"
+  #   - "0079"
+  # drip_emitter:
+  #   - "1642"
+  #   - "1645"
+
+# ---- Optional: human-readable description per label ----
+# Purely informational; written into evaluation reports.
+class_descriptions: {}
+  # rotor_head: "Rotary sprinkler head (multiple drawing variants merged)."
+  # drip_emitter: "In-line drip emitter."
+
+# ---- Treatment of all other (non-irrigation) classes ----
+# How to handle annotations that do NOT belong to `irrigation_classes`:
+#   - "drop"        : remove them entirely (object-detection trains on a
+#                     pure irrigation-only label space, but the model never
+#                     sees these distractors)
+#   - "background"  : keep their bounding boxes as a single "background"
+#                     class so the detector learns to suppress them
+#   - "negative"    : keep the image but discard the boxes (use the rest
+#                     of the page as implicit negative context)
+non_irrigation_policy: "background"

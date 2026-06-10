@@ -1,0 +1,29 @@
+# Source dataset paths and metadata.
+# Paths are resolved relative to the repo root unless absolute.
+
+dataset:
+  name: "landscaping-detection.v61-complete_annotations"
+  format: "yolo"   # Roboflow "YOLO26" export
+
+  # Root of the unzipped Roboflow YOLO export.
+  root: "../datasets/landscaping-detection.v61-complete_annotations.yolo26"
+
+  # Each split is a directory containing `images/` and `labels/`.
+  splits:
+    train: "train"
+    test: "test"
+    # No `valid` split in the Roboflow export; we carve one off `train` during
+    # dataset preparation (see configs/detection.yaml -> split).
+
+  # Stats captured from the YOLO export's data.yaml (regenerate with
+  # scripts/inspect_dataset.py).
+  stats:
+    num_images_train: 390
+    num_images_test: 9
+    num_categories: 4541              # nc in Roboflow's data.yaml
+    num_four_digit_class_names: 4436  # ~97.7% of the label space
+    num_non_four_digit_class_names: 105 # short codes, plant names, 5-digit, etc.
+
+  # Sanity floor for the irrigation filter: warn if any listed irrigation
+  # class isn't found in the source data.yaml.
+  always_drop_categories: []  # YOLO export already drops the Roboflow supercategory

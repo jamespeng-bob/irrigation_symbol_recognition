@@ -1,0 +1,69 @@
+# =============================================================================
+# YOLO detection pipeline configuration
+# =============================================================================
+# These parameters drive three things:
+#   1. dataset preparation  (scripts/prepare_detection_dataset.py)
+#   2. training             (scripts/train_detection.py)
+#   3. inference            (scripts/inference_detection.py)
+#
+# Mirrors the conventions from the reference `electrical_dev-main/detection/`
+# pipeline, which our colleague's team uses in production.
+# =============================================================================
+
+# --- Where the prepared YOLO datasets are written on disk -------------------
+paths:
+  # YOLO format conversion (COCO -> YOLO), before slicing.
+  yolo_dataset_dir: "data/detection/irrigation_yolo"
+  # Output of the slicing step (this is what YOLO actually trains on).
+  sliced_dataset_dir: "data/detection/irrigation_yolo_sliced"
+  # Where Ultralytics writes runs/weights/results.
+  runs_project: "runs"
+  runs_name: "irrigation_yolo_v1"
+
+# --- Train/valid split (carved out of the COCO train split) -----------------
+# Test comes from the COCO `test` split as-is.
+split:
+  valid_fraction: 0.10
+  seed: 42
+  # If true, ensure all sub-tiles of the same source PDF page end up in the
+  # same split (no leakage between train/valid).
+  group_by_page_prefix: true
+
+# --- Slicing parameters (matches the reference defaults) --------------------
+slicing:
+  slice_size: 1280
+  overlap: 0.25
+  # Behavior for boxes that cross the slice boundary (see slicing.py):
+  #   fit_box_to_slice: true  -> clip the box at the slice edge (SAHI-style).
+  #   fit_box_to_slice: false -> use the >50%-of-area rule; if more than half
+  #                              the original box is inside, KEEP the FULL
+  #                              original box (lets YOLO learn the full
+  #                              symbol extent); otherwise DROP that box for
+  #                              this tile.
+  fit_box_to_slice: false
+
+# --- Training (Ultralytics YOLO) --------------------------------------------
+training:
+  # YOLO model to start from. Set `pretrained_path` to fine-tune from a
+  # checkpoint provided by colleagues; leave empty to use the public weights.
+  model_size: "m"           # one of: n, s, m, l, x
+  model_yaml: "yolo11x.yaml" # used only if `pretrained_path` is set
+  pretrained_path: ""        # e.g. "external_api/localization.pt"
+  model_path: ""             # set to a `best.pt` to resume / fine-tune
+
+  image_size: 640            # network input (slices will be resized to this)
+  epochs: 50
+  batch_size: 16
+  device: "auto"             # "auto" picks cuda > mps > cpu
+  num_workers: 4
+
+# --- Inference --------------------------------------------------------------
+inference:
+  slice_size: 1280           # must match `slicing.slice_size` used in training
+  model_input_size: 640      # must match `training.image_size`
+  overlap: 0.25
+  conf_threshold: 0.25
+  batch_size: 16
+  # Class-aware NMS (per-class IoU suppression). Boxes of the same class
+  # whose IoU exceeds this threshold collapse to the highest-confidence one.
+  nms_iou_threshold: 0.5

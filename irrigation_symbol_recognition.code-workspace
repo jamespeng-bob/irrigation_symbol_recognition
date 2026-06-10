@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../electrical_dev-main/detection"
+		},
+		{
+			"path": "../datasets"
+		}
+	],
+	"settings": {}
+}

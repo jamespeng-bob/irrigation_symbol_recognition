@@ -1,0 +1,26 @@
+# Core scientific stack
+numpy>=1.26
+pandas>=2.1
+pyyaml>=6.0
+tqdm>=4.66
+matplotlib>=3.8
+Pillow>=10.2
+
+# COCO / detection utilities
+pycocotools>=2.0.7
+opencv-python>=4.9
+
+# Modeling (we'll pick one or both during the modeling step)
+torch>=2.2
+torchvision>=0.17
+
+# Object detection / experiment tracking (optional but commonly used)
+ultralytics>=8.4          # YOLOv8/YOLOv11 for detection baselines
+albumentations>=1.4       # augmentations
+scikit-learn>=1.4
+tensorboard>=2.16
+
+# Google Cloud (required by external_api/call_symbol_localizer.py)
+google-cloud-aiplatform>=1.60
+google-cloud-storage>=2.16
+google-auth>=2.30
