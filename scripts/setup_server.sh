@@ -50,21 +50,48 @@ source "${VENV_DIR}/bin/activate"
 
 python -m pip install --upgrade pip
 
+# -------------------------------------------------------------------------
+# Install torch+torchvision matched to the NVIDIA driver's CUDA capability.
+#
+# The default PyPI torch wheel chases the very latest CUDA (e.g. cu130),
+# which often won't run on drivers older than ~570. We instead pin to the
+# CUDA major.minor reported by `nvidia-smi` so we get a torch wheel that
+# actually works.
+# -------------------------------------------------------------------------
+if command -v nvidia-smi >/dev/null 2>&1; then
+    CUDA_RUNTIME="$(nvidia-smi 2>/dev/null | grep -oE 'CUDA Version: [0-9]+\.[0-9]+' | head -1 | awk '{print $3}')"
+fi
+if [[ -z "${CUDA_RUNTIME:-}" ]]; then
+    echo "WARNING: could not detect CUDA Version from nvidia-smi; falling back to cu124"
+    CUDA_RUNTIME="12.4"
+fi
+
+CUDA_TAG="cu$(echo "${CUDA_RUNTIME}" | tr -d .)"
+TORCH_INDEX="https://download.pytorch.org/whl/${CUDA_TAG}"
 echo "----------------------------------------------------------"
-echo "Installing requirements.txt (this pulls a CUDA-enabled"
-echo "torch wheel from PyPI on Linux; takes a few minutes the"
-echo "first time)..."
+echo "Detected NVIDIA driver CUDA capability : ${CUDA_RUNTIME}"
+echo "Installing torch + torchvision from    : ${TORCH_INDEX}"
+echo "----------------------------------------------------------"
+
+if ! pip install --index-url "${TORCH_INDEX}" torch torchvision; then
+    echo "WARNING: ${CUDA_TAG} channel didn't have torch/torchvision; falling back to cu124"
+    pip install --index-url "https://download.pytorch.org/whl/cu124" torch torchvision
+fi
+
+echo "----------------------------------------------------------"
+echo "Installing the rest of requirements.txt (torch is already"
+echo "satisfied, so pip will skip re-downloading it)..."
 echo "----------------------------------------------------------"
 pip install -r "${REPO_ROOT}/requirements.txt"
 
 echo "----------------------------------------------------------"
 echo "Sanity check"
 echo "----------------------------------------------------------"
-python - <<'PYCHECK'
+PYTHONPATH="${REPO_ROOT}/src" python - <<'PYCHECK'
 import sys
 print(f"python   : {sys.version.split()[0]}")
 import torch
-print(f"torch    : {torch.__version__}")
+print(f"torch    : {torch.__version__}  (CUDA build: {torch.version.cuda})")
 print(f"  CUDA available : {torch.cuda.is_available()}")
 if torch.cuda.is_available():
     for i in range(torch.cuda.device_count()):
@@ -73,7 +100,6 @@ if torch.cuda.is_available():
 from ultralytics import YOLO
 print("ultralytics: imported OK")
 
-sys.path.insert(0, "src")
 from irrigation_symbol_recognition.data import YoloDataset
 from irrigation_symbol_recognition.detection import filter_yolo_dataset, slice_data, nms_boxes
 print("project pkg: imported OK")
