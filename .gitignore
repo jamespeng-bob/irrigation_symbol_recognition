@@ -39,7 +39,9 @@ logs/
 Ultralytics/    # ultralytics auto-creates this for its settings.json on first import
 
 # --- Prepared datasets (written by scripts/prepare_detection_dataset.py) ---
-data/
+# Anchored to repo root so we don't accidentally hide
+# `src/irrigation_symbol_recognition/data/` (our YOLO-loading submodule).
+/data/
 
 # --- Cached / generated artifacts ---
 *.npy
