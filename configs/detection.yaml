@@ -13,26 +13,69 @@
 # --- Where the prepared YOLO datasets are written on disk -------------------
 paths:
   # Filtered YOLO dataset (irrigation classes only), before tile slicing.
+  # Used by `page_grouped` mode. The `stratified_tile` mode writes only the
+  # sliced output (no intermediate "unsliced filtered" dataset).
   yolo_dataset_dir: "data/detection/irrigation_yolo"
   # Output of the slicing step (this is what YOLO actually trains on).
   sliced_dataset_dir: "data/detection/irrigation_yolo_sliced"
+  # Held-out drawing-level test set (only populated in `stratified_tile`).
+  drawing_test_dir: "data/detection/irrigation_drawing_test"
   # Where Ultralytics writes runs/weights/results.
   runs_project: "runs"
-  runs_name: "irrigation_yolo_v1"
+  runs_name: "irrigation_yolo_v2"
 
-# --- Train/valid split (carved out of the Roboflow `train` split) -----------
-# `test` comes from the Roboflow `test` split unchanged.
+# --- Train / valid / test split ---------------------------------------------
+# Two modes are available:
+#
+#   page_grouped:
+#     Original v1 behaviour. The Roboflow `train` split is sliced and a
+#     fraction is carved off (page-grouped) for `valid`. `test` is the
+#     Roboflow `test` split sliced as-is. Simple, but only ~6 of 14
+#     irrigation classes appear in the test set.
+#
+#   stratified_tile  (default in v2):
+#     The Roboflow `train` and `test` splits are pooled and re-split at the
+#     tile level so that EVERY irrigation class is represented in `valid`
+#     and `test`. A small set of full source drawings is also held out for
+#     a separate drawing-level evaluation (see `paths.drawing_test_dir`).
+#     The split is overlap-aware in source-page pixel space — no two tiles
+#     in different splits share a pixel.
 split:
-  valid_fraction: 0.10
+  mode: "stratified_tile"
   seed: 42
-  # If true, ensure all sub-tiles of the same source PDF page end up in the
-  # same split (no leakage between train/valid).
+
+  # ---- Used only when mode == "page_grouped" -----------------------------
+  valid_fraction: 0.10
   group_by_page_prefix: true
+
+  # ---- Used only when mode == "stratified_tile" --------------------------
+  stratified_tile:
+    train_fraction: 0.78
+    valid_fraction: 0.10
+    test_fraction: 0.12
+    # Each irrigation class must have at least this many atoms in test
+    # (and the matching one in valid). Atoms with rare classes are picked
+    # first so floors are met before we fall back to fractional fill.
+    min_test_atoms_per_class: 5
+    min_valid_atoms_per_class: 3
+
+  # ---- Drawing-level held-out test ---------------------------------------
+  # Used only when mode == "stratified_tile". Picks page_key clusters via
+  # greedy class-coverage Set Cover so every irrigation class is
+  # represented by ≥ this many drawings in the held-out drawing test.
+  drawing_test:
+    enabled: true
+    min_clusters_per_class: 1
+    # Optional safety cap; leave null to use the smallest set that achieves
+    # the per-class coverage.
+    max_clusters: null
 
 # --- Slicing parameters (matches the reference defaults) --------------------
 slicing:
   slice_size: 1280
-  overlap: 0.25
+  # With `stratified_tile`, overlap should be 0 so non-overlapping tiles can
+  # land in different splits. With `page_grouped` the historical 0.25 is fine.
+  overlap: 0.0
   # Behavior for boxes that cross the slice boundary (see slicing.py):
   #   fit_box_to_slice: true  -> clip the box at the slice edge (SAHI-style).
   #   fit_box_to_slice: false -> use the >50%-of-area rule; if more than half
