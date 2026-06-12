@@ -39,6 +39,25 @@ strictly different roles — read this before editing anything.
    The dormant `external_api/` code expects the Google service-account
    JSON there. If we ever need to run it on the server, `scp` the file
    over manually; do NOT commit it.
+6. **GPU sharing convention (two-GPU server, multiple Cursor projects).**
+   The server has two RTX 6000 Ada cards and is used by several projects
+   running concurrently from different Cursor workspaces. To keep things
+   collision-free:
+   * **This project (`irrigation_symbol_recognition`) defaults to
+     `cuda:0`.** All scripts use `--device cuda:0` and `configs/detection.yaml`
+     sets `training.device: "auto"` which resolves to `cuda:0` via
+     `_select_device(...)`.
+   * **Other Cursor workspaces default to `cuda:1`.**
+   * **Always check `nvidia-smi` before kicking off training**, in case
+     plans changed.
+   * **If — and only if — both GPUs are idle**, you may opt into DDP to
+     halve wall time:
+     ```bash
+     python scripts/train_detection.py --device 0,1
+     ```
+     Coordinate with the other workspace's owner before doing this. If
+     they start using `cuda:1` while your DDP run is in flight, your
+     training will crash; we'd rather lose 2× speed than 3 h of wall time.
 
 ## Typical end-to-end flow
 
