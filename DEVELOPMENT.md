@@ -87,14 +87,36 @@ python scripts/train_detection.py --device cuda:0
 
 ## SSH
 
+There are **two host aliases** for the same machine, picked based on where
+the MacBook is sitting on the network:
+
 ```bash
+# On the company WiFi (direct LAN reach to the server):
 ssh bobyard-server-6000
+
+# Off-network (home, coffee shop, hotel, etc.) -- goes through a
+# RustDesk TCP tunnel:
+ssh bobyard-server-6000-tunnel
 ```
 
-The `bobyard-server-6000` host alias and key are configured in the
-MacBook's `~/.ssh/config` — no password should be required. If you ever
-get prompted, re-check the SSH config; do NOT paste any passphrase or
-git credential into the server.
+Both aliases are configured in the MacBook's `~/.ssh/config` and use the
+same key — no password should be required for either. If you ever get
+prompted, re-check the SSH config; do NOT paste any passphrase or git
+credential into the server.
+
+**Before using `bobyard-server-6000-tunnel`**, make sure RustDesk on the
+MacBook is open, connected to the server, and that the **TCP tunnel is
+enabled** in the RustDesk session (the tunnel maps a local port on the
+Mac to the SSH port on the server; the `-tunnel` SSH alias points at
+that local port). If the tunnel isn't running, the SSH connection will
+time out or fail to authenticate.
+
+Quick decision tree:
+
+| where am I | command |
+|---|---|
+| Bobyard office WiFi | `ssh bobyard-server-6000` |
+| Anywhere else | open RustDesk → enable TCP tunnel → `ssh bobyard-server-6000-tunnel` |
 
 ## Cheat sheet: file paths on each machine
 
